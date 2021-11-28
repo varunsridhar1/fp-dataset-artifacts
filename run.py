@@ -46,6 +46,8 @@ def main():
                       help='Limit the number of examples to train on.')
     argp.add_argument('--max_eval_samples', type=int, default=None,
                       help='Limit the number of examples to evaluate on.')
+    argp.add_argument('--load_data_from_disk', type=str, default="no",
+                      help='load dataset from disk to evaluate')
 
     training_args, args = argp.parse_args_into_dataclasses()
 
@@ -58,7 +60,10 @@ def main():
     # MNLI has two validation splits (one with matched domains and one with mismatched domains). Most datasets just have one "validation" split
     eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
     # Load the raw data
-    dataset = datasets.load_dataset(*dataset_id)
+    if args.load_data_from_disk == "yes":
+        dataset = datasets.load_from_disk('data/eval/')
+    else:
+        dataset = datasets.load_dataset(*dataset_id)
 
     # Here we select the right model fine-tuning head
     model_classes = {'qa': AutoModelForQuestionAnswering,
@@ -99,7 +104,10 @@ def main():
             remove_columns=train_dataset.column_names
         )
     if training_args.do_eval:
-        eval_dataset = dataset[eval_split]
+        if args.load_data_from_disk == "no":
+            eval_dataset = dataset[eval_split]
+        else:
+            eval_dataset = dataset
         if args.max_eval_samples:
             eval_dataset = eval_dataset.select(range(args.max_eval_samples))
         eval_dataset_featurized = eval_dataset.map(
