@@ -1,5 +1,4 @@
-from datasets import load_dataset, interleave_datasets
-from datasets.arrow_dataset import concatenate_datasets
+from datasets import load_dataset, concatenate_datasets
 
 squad = load_dataset('squad', split='validation')
 aqa = load_dataset('adversarial_qa', 'adversarialQA', split='validation')
